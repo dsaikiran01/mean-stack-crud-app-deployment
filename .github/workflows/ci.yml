@@ -1,0 +1,40 @@
+name: CI - Build and Push Docker Images
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      # ---- Login to Docker Hub ----
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # ---- Build & Push Backend ----
+      - name: Build Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/mean-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/mean-backend:${{ github.sha }}
+
+      # ---- Build & Push Frontend ----
+      - name: Build Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/mean-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/mean-frontend:${{ github.sha }}
